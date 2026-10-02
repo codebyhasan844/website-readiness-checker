@@ -1,0 +1,7 @@
+{
+  "name": "Website Readiness Checker",
+  "description": "Website Launch & QA Platform. One URL. One Scan. One Clear Answer. Know if your website is ready to ship.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
