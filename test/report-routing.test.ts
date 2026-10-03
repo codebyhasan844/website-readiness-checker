@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   fetchRouteScan,
+  getOrCreateAuditSessionForScan,
   getInitialScanForRoute,
   ReportPage,
   shouldFetchRouteScan,
@@ -112,6 +113,43 @@ describe('Report route scan selection', () => {
     );
 
     assert.equal(markup.includes(DEMO_REPORT.url), true);
+  });
+
+  it('uses the initialized scan batch instead of the empty session shell', () => {
+    const scan = createScan('scan-session-init-42', 'https://session.example.test/');
+    scan.pages = [{
+      url: scan.normalizedUrl,
+      normalizedUrl: scan.normalizedUrl,
+      depth: 0,
+      discoveredFrom: ['homepage'],
+      http: {
+        requestedUrl: scan.normalizedUrl,
+        finalUrl: scan.normalizedUrl,
+        statusCode: 200,
+        statusText: 'OK',
+        headers: {},
+        securityHeaders: {},
+        contentType: 'text/html',
+        responseBytes: 100,
+        durationMs: 10,
+        timing: { startTime: 0, endTime: 10, totalMs: 10 },
+        redirects: [],
+      },
+      document: {},
+      headings: { h1Count: 0, items: [] },
+      links: [],
+      images: [],
+      resources: [],
+      scanErrors: [],
+    }];
+    scan.discoveredUrls = [scan.normalizedUrl];
+
+    const session = getOrCreateAuditSessionForScan(scan);
+
+    assert.equal(session.batches.length, 1);
+    assert.deepEqual(session.allAnalyzedUrls, [scan.normalizedUrl]);
+    assert.equal(session.coverage.status, 'FULL COVERAGE');
+    assert.notEqual(session.coverage.message, 'Audit session initialized. Ready for batch analysis.');
   });
 
   it('loads a real scan through the route API helper and rejects missing or failed lookups', async () => {

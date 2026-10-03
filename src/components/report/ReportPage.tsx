@@ -72,6 +72,14 @@ export async function fetchRouteScan(
   return scan;
 }
 
+export function getOrCreateAuditSessionForScan(scan: ScanResult): AuditSession {
+  const targetUrl = scan.normalizedUrl || scan.inputUrl;
+  const session = getOrCreateAuditSession(targetUrl, scan.scanId);
+  return session.batches.length === 0
+    ? appendBatchToSession(session, scan, 1)
+    : session;
+}
+
 export const ReportPage: React.FC<ReportPageProps> = ({
   scanId,
   initialRawScan,
@@ -155,12 +163,7 @@ export const ReportPage: React.FC<ReportPageProps> = ({
   // Synchronize or initialize audit session with rawScan
   useEffect(() => {
     if (rawScan) {
-      const targetUrl = rawScan.normalizedUrl || rawScan.inputUrl;
-      const session = getOrCreateAuditSession(targetUrl, rawScan.scanId);
-      if (session.batches.length === 0) {
-        appendBatchToSession(session, rawScan, 1);
-      }
-      setAuditSession(session);
+      setAuditSession(getOrCreateAuditSessionForScan(rawScan));
     }
   }, [rawScan?.scanId]);
 
